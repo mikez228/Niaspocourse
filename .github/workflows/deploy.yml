@@ -2,33 +2,39 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     strategy:
+      fail-fast: false
       matrix:
         service: [auth_service, orders_service, warehouse_service, tracking_service, gateway_service]
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v3
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@v2
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and push
-      uses: docker/build-push-action@v4
+    - name: Build and push image
+      uses: docker/build-push-action@v6
       with:
         context: ./${{ matrix.service }}
+        file: ./${{ matrix.service }}/Dockerfile
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/logistics_${{ matrix.service }}:latest
 
@@ -36,25 +42,28 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/main'
-    steps:
-    - uses: actions/checkout@v3
 
-    - name: Copy files to server
-      uses: appleboy/scp-action@master
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Upload stack files to server
+      uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.SWARM_MANAGER_IP }}
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: "docker-stack.yml,database/init.sql"
-        target: "/home/${{ secrets.SSH_USER }}/app"
+        source: |
+          docker-stack.yml
+          database/init.sql
+        target: /home/${{ secrets.SSH_USER }}/app
 
-    - name: Deploy to Swarm
-      uses: appleboy/ssh-action@master
+    - name: Deploy to Docker Swarm
+      uses: appleboy/ssh-action@v0.1.10
       with:
         host: ${{ secrets.SWARM_MANAGER_IP }}
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /home/${{ secrets.SSH_USER }}/app
-          export DOCKER_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
           docker stack deploy -c docker-stack.yml logistics
