@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logistics OS</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- AUTH VIEW -->
+    <div id="auth-view" class="auth-wrapper glass-container" style="max-width: 500px; min-height: auto;">
+        <h2 class="text-center" style="margin-bottom: 2rem;">Logistics OS</h2>
+        <div class="form-box">
+            <h3 id="auth-title" class="text-center" style="color: var(--dark); margin-bottom: 1rem;">Login</h3>
+            <input type="text" id="u" placeholder="Username">
+            <input type="password" id="p" placeholder="Password">
+            <button id="btn-auth-action" class="btn-primary" onclick="login()">Login</button>
+            <p class="text-center" style="margin-top: 1rem; font-size: 0.9rem;">
+                <span id="auth-msg">New here?</span>
+                <button onclick="toggleAuth()"
+                    style="background:none; border:none; color: var(--primary); font-weight:bold; cursor:pointer;"
+                    id="btn-auth-toggle">Register</button>
+            </p>
+        </div>
+    </div>
+
+    <!-- APP VIEW -->
+    <div id="app-view" class="glass-container hidden">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h1>Logistics OS</h1>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span id="display-username" style="font-weight: bold; color: white;">User</span>
+                <button onclick="logout()"
+                    style="background: rgba(255,118,117,0.8); border: none; padding: 0.5rem 1rem; color: white; border-radius: 20px; cursor: pointer;">Exit</button>
+            </div>
+        </header>
+
+        <nav>
+            <button id="btn-dashboard" class="active" onclick="switchTab('dashboard')">Dashboard</button>
+            <button id="btn-orders" onclick="switchTab('orders')">Orders</button>
+            <button id="btn-warehouse" onclick="switchTab('warehouse')">Warehouse</button>
+            <button id="btn-tracking" onclick="switchTab('tracking')">Tracking</button>
+            <button id="btn-admin" class="hidden" onclick="switchTab('admin')">Admin</button>
+        </nav>
+
+        <!-- DASHBOARD TAB -->
+        <div id="dashboard" class="view-section fade-in">
+            <div class="stats-grid">
+                <div class="card">
+                    <h3>Total Active Orders</h3>
+                    <div class="number" id="stat-orders">0</div>
+                    <small>Updated just now</small>
+                </div>
+                <div class="card">
+                    <h3>Warehouse Items</h3>
+                    <div class="number" id="stat-stock">0</div>
+                    <small>Total individual units</small>
+                </div>
+                <div class="card">
+                    <h3>System Status</h3>
+                    <div class="number" style="color: #00b894; font-size: 1.5rem;">Online</div>
+                    <small>Gateway v1.2</small>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div class="card">
+                    <h3>Recent Activity</h3>
+                    <p style="opacity: 0.6; margin-top: 1rem;">Listening for events...</p>
+                </div>
+                <div class="card">
+                    <h3>Quick Actions</h3>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                        <button class="btn-primary" onclick="switchTab('orders')">New Order</button>
+                        <button class="btn-primary" onclick="switchTab('tracking')">Track Item</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ORDERS TAB -->
+        <div id="orders" class="view-section hidden fade-in">
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                <div>
+                    <h2>My Orders</h2>
+                    <div id="orders-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+                <div>
+                    <div class="card">
+                        <h3>Create New Order</h3>
+                        <div style="margin-top: 1rem;">
+                            <label>Add Item:</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <select id="order-item-select"></select>
+                                <input type="number" id="order-item-qty" value="1" style="width: 70px;">
+                            </div>
+                            <button class="btn-primary" style="margin-bottom: 1rem;" onclick="addDraftItem()">Add to
+                                Draft</button>
+
+                            <hr style="opacity: 0.2;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <small>Draft Items:</small>
+                                <button onclick="clearDraft()"
+                                    style="background:none; border:none; color:var(--text); cursor:pointer; font-size:0.8rem;">Clear
+                                    All</button>
+                            </div>
+                            <div id="draft-items" style="margin-bottom: 1rem;"></div>
+                            <button class="btn-primary" style="background: var(--success);"
+                                onclick="submitOrder()">Submit Order</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WAREHOUSE TAB -->
+        <div id="warehouse" class="view-section hidden fade-in">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Inventory</h2>
+                <div id="nav-admin" class="hidden"> <!-- Only admin sees quick add here if desired -->
+                </div>
+            </div>
+
+            <div class="card">
+                <table id="warehouse-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Item Name</th>
+                            <th>Quantity</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card" style="margin-top: 2rem;">
+                <h3>Add New Stock (Open Access)</h3>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <input type="text" id="new-item-name" placeholder="Item Name">
+                    <input type="number" id="new-item-qty" placeholder="Qty">
+                    <button class="btn-primary" onclick="createItem()">Add to Stock</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TRACKING TAB -->
+        <div id="tracking" class="view-section hidden fade-in">
+            <div style="max-width: 600px; margin: 0 auto;">
+                <div class="card text-center">
+                    <h2>Track Shipment</h2>
+                    <input type="number" id="track-input" placeholder="Enter Order ID"
+                        style="margin-top: 1rem; font-size: 1.2rem; text-align: center;">
+                    <button class="btn-primary" onclick="doTrack()">Find Order</button>
+                </div>
+
+                <div id="tracking-result" style="margin-top: 2rem;"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

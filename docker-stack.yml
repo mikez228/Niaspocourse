@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  gateway-service:
+    image: logistics_gateway:latest
+    ports:
+      - "80:80"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - logistics-overlay
+
+  auth-service:
+    image: logistics_auth:latest
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres-service:5432/logistics
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - logistics-overlay
+
+  orders-service:
+    image: logistics_orders:latest
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres-service:5432/logistics
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - logistics-overlay
+
+  warehouse-service:
+    image: logistics_warehouse:latest
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres-service:5432/logistics
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - logistics-overlay
+
+  tracking-service:
+    image: logistics_tracking:latest
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres-service:5432/logistics
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - logistics-overlay
+
+  postgres-service:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: logistics
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    networks:
+      - logistics-overlay
+
+networks:
+  logistics-overlay:
+    driver: overlay
+
+volumes:
+  postgres_data:

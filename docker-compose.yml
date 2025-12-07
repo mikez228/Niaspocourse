@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  gateway-service:
+    build: ./gateway_service
+    image: logistics_gateway:latest
+    container_name: gateway-service
+    ports:
+      - "80:80"
+    depends_on:
+      - auth-service
+      - orders-service
+      - warehouse-service
+      - tracking-service
+      - postgres-service
+    networks:
+      - logistics-net
+
+  auth-service:
+    build: ./auth_service
+    image: logistics_auth:latest
+    container_name: auth-service
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres-service:5432/logistics
+    depends_on:
+      - postgres-service
+    networks:
+      - logistics-net
+
+  orders-service:
+    build: ./orders_service
+    image: logistics_orders:latest
+    container_name: orders-service
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres-service:5432/logistics
+    depends_on:
+      - postgres-service
+    networks:
+      - logistics-net
+
+  warehouse-service:
+    build: ./warehouse_service
+    image: logistics_warehouse:latest
+    container_name: warehouse-service
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres-service:5432/logistics
+    depends_on:
+      - postgres-service
+    networks:
+      - logistics-net
+
+  tracking-service:
+    build: ./tracking_service
+    image: logistics_tracking:latest
+    container_name: tracking-service
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres-service:5432/logistics
+    depends_on:
+      - postgres-service
+    networks:
+      - logistics-net
+
+  postgres-service:
+    image: postgres:15
+    container_name: postgres-service
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: logistics
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - logistics-net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d logistics" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  logistics-net:
+    driver: bridge
+
+volumes:
+  postgres_data:

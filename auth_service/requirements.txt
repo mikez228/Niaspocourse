@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+asyncpg
+prometheus-client
+pyjwt
+passlib
+bcrypt==4.0.1
+python-multipart

@@ -1,0 +1,21 @@
+name: Deploy to Swarm
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build # Assuming build job is in the same workflow or this is triggered after
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Deploy to Swarm
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SWARM_MANAGER_IP }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          docker stack deploy -c docker-stack.yml logistics
