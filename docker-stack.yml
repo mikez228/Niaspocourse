@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   gateway-service:
-    image: logistics_gateway:latest
+    image: ${DOCKER_USERNAME}/logistics_gateway:latest
     ports:
       - "80:80"
     deploy:
@@ -13,7 +13,7 @@ services:
       - logistics-overlay
 
   auth-service:
-    image: logistics_auth:latest
+    image: ${DOCKER_USERNAME}/logistics_auth:latest
     environment:
       - DATABASE_URL=postgresql://user:password@postgres-service:5432/logistics
     deploy:
@@ -24,7 +24,7 @@ services:
       - logistics-overlay
 
   orders-service:
-    image: logistics_orders:latest
+    image: ${DOCKER_USERNAME}/logistics_orders:latest
     environment:
       - DATABASE_URL=postgresql://user:password@postgres-service:5432/logistics
     deploy:
@@ -35,7 +35,7 @@ services:
       - logistics-overlay
 
   warehouse-service:
-    image: logistics_warehouse:latest
+    image: ${DOCKER_USERNAME}/logistics_warehouse:latest
     environment:
       - DATABASE_URL=postgresql://user:password@postgres-service:5432/logistics
     deploy:
@@ -46,7 +46,7 @@ services:
       - logistics-overlay
 
   tracking-service:
-    image: logistics_tracking:latest
+    image: ${DOCKER_USERNAME}/logistics_tracking:latest
     environment:
       - DATABASE_URL=postgresql://user:password@postgres-service:5432/logistics
     deploy:
